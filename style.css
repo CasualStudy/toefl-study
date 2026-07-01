@@ -47,7 +47,7 @@ body {
   color: var(--text-primary);
   font-family: var(--font-interface);
   overflow-x: hidden;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
 }
 
@@ -78,7 +78,7 @@ button, input {
 .app-container {
   display: flex;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -1197,7 +1197,9 @@ button, input {
   -webkit-box-orient: vertical;
 }
 
-/* Responsiveness */
+/* =========================================
+   RESPONSIVE - TABLET
+   ========================================= */
 @media (max-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -1215,37 +1217,235 @@ button, input {
   }
 }
 
+/* =========================================
+   RESPONSIVE - MOBILE (< 768px)
+   ========================================= */
 @media (max-width: 768px) {
+  /* Body layout: vertical stack with bottom nav */
   body {
     flex-direction: column;
   }
+
+  .app-container {
+    flex-direction: column;
+  }
+
+  /* ---- Sidebar becomes a fixed bottom tab bar ---- */
   .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
     height: auto;
-    padding: 20px;
     border-right: none;
-    border-bottom: 1px solid var(--border-light);
+    border-top: 1px solid var(--border-light);
+    padding: 8px 12px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    z-index: 100;
+    background-color: rgba(20, 22, 29, 0.97);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
   }
+
+  /* Hide brand logo in bottom tab bar */
   .brand {
-    margin-bottom: 24px;
+    display: none;
   }
+
+  /* Nav items as compact icon+label tabs */
   .nav-menu {
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    gap: 0;
+    width: 100%;
   }
+
   .nav-item {
-    padding: 10px 14px;
-    font-size: 14px;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    font-size: 10px;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+    min-width: 0;
   }
+
+  .nav-item i {
+    font-size: 22px;
+  }
+
+  /* Hide sidebar footer in mobile tab bar */
   .sidebar-footer {
     display: none;
   }
+
+  /* ---- Main content area ---- */
   .main-content {
-    padding: 24px;
+    flex: 1;
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 16px;
+    /* Leave room for fixed bottom tab bar (~70px) */
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+
+  /* ---- Page header ---- */
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-header h2 {
+    font-size: 22px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+  }
+
+  /* ---- Dashboard ---- */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .welcome-card {
+    padding: 24px 20px;
+  }
+
+  .welcome-card h3 {
+    font-size: 20px;
+  }
+
+  /* ---- Study page ---- */
+  .study-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .day-selector-bar {
+    padding: 12px 16px;
+  }
+
+  .day-info-text {
+    font-size: 15px;
+  }
+
+  .original-sentence-card,
+  .evolution-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .original-sentence-text {
+    font-size: 16px;
+  }
+
+  /* Main sentence evolution text - readable on mobile */
+  .evolution-text {
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .evolution-translation {
+    font-size: 14px;
+  }
+
+  .evolution-change {
+    font-size: 13px;
+  }
+
+  .btn-evolution-nav {
+    padding: 12px 10px;
+    font-size: 14px;
+  }
+
+  /* Evolution timeline dots - slightly smaller */
+  .evolution-dot {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  /* ---- Vocab grid - single column ---- */
+  .vocab-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .vocab-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .filter-btn-group {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-btn {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+
+  /* ---- Article page ---- */
+  .article-layout {
+    grid-template-columns: 1fr;
+    padding: 20px 16px;
+    gap: 24px;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .article-pane {
     height: auto;
-    overflow-y: visible;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  /* ---- Stat cards - horizontal ---- */
+  .stat-card {
+    padding: 18px 16px;
+  }
+
+  .stat-info p {
+    font-size: 22px;
   }
 }
+
+/* =========================================
+   EXTRA SMALL PHONES (< 375px)
+   ========================================= */
+@media (max-width: 375px) {
+  .evolution-text {
+    font-size: 15px;
+  }
+
+  .nav-item {
+    font-size: 9px;
+  }
+
+  .nav-item i {
+    font-size: 20px;
+  }
+}
+
 
 /* Clickable Words and Dictionary Tooltip */
 .clickable-word {
@@ -1301,4 +1501,17 @@ button, input {
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.5;
+}
+
+/* On mobile, anchor tooltip to bottom of screen for better UX */
+@media (max-width: 768px) {
+  .word-tooltip {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+    max-width: 100%;
+    width: auto;
+    top: auto;
+  }
 }
