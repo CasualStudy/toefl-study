@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>托福长难句拆解学习助手 | 特奥蒂瓦坎的兴起</title>
+  <!-- Remix Icons for beautiful UI icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- Vanilla CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">T</div>
+        <div class="brand-text">
+          <h1>TOEFL Tutor</h1>
+          <p>Teotihuacán</p>
+        </div>
+      </div>
+      
+      <nav>
+        <ul class="nav-menu">
+          <li>
+            <a href="#" class="nav-item active" data-page="dashboard">
+              <i class="ri-dashboard-3-line"></i>
+              <span>学习主页</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-page="study">
+              <i class="ri-book-open-line"></i>
+              <span>每日一句</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-page="article">
+              <i class="ri-align-justify"></i>
+              <span>全文对照</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-page="vocab">
+              <i class="ri-chat-voice-line"></i>
+              <span>词汇词典</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="progress-widget">
+          <div class="progress-widget-header">
+            <span>总学习进度</span>
+            <span id="sidebar-progress-text">0/28 天</span>
+          </div>
+          <div class="progress-widget-bar-outer">
+            <div class="progress-widget-bar-inner" id="sidebar-progress-bar"></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      
+      <!-- ================= PAGE: DASHBOARD ================= -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-header">
+          <h2 id="dashboard-welcome-title">您好！准备好今天的挑战了吗？</h2>
+          <p>特奥蒂瓦坎的兴起（The Rise of Teotihuacán）28 天渐进学习计划</p>
+        </div>
+        
+        <div class="dashboard-grid">
+          <div class="dashboard-main">
+            <!-- Welcome CTA Banner -->
+            <div class="welcome-card">
+              <h3>28 天征服托福长难句</h3>
+              <p>我们将带您将特奥蒂瓦坎这篇高频文章中的 28 个难懂的复杂句，逐步拆解成 67 个简短句。每天只要弄懂一句，28 天后就能轻松读懂这篇高难度文章！</p>
+              <button class="btn" id="dashboard-start-btn">
+                开始今日挑战 <i class="ri-arrow-right-line"></i>
+              </button>
+            </div>
+            
+            <!-- Today Sentence Goal Box -->
+            <div class="today-goal-card">
+              <h4 id="dashboard-card-title">今日推荐句 (第 1 天)</h4>
+              <div class="sentence-preview-box">
+                <p id="dashboard-sentence-text">Loading...</p>
+                <div class="translation" id="dashboard-sentence-translation">Loading...</div>
+              </div>
+              <div style="display:flex; justify-content:flex-end;">
+                <button class="audio-btn" id="dashboard-play-btn" title="听音朗读" style="font-size:22px; color:var(--accent-gold); padding:8px;">
+                  <i class="ri-volume-up-fill"></i> 听音朗读
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="dashboard-sidebar">
+            <!-- Learning Stats -->
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              <div class="stat-card">
+                <div class="stat-icon"><i class="ri-percent-line"></i></div>
+                <div class="stat-info">
+                  <h5>进度百分比</h5>
+                  <p id="stat-percent-value">0%</p>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon"><i class="ri-calendar-check-line"></i></div>
+                <div class="stat-info">
+                  <h5>已打卡天数</h5>
+                  <p id="stat-days-value">0 天</p>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon"><i class="ri-chat-3-line"></i></div>
+                <div class="stat-info">
+                  <h5>掌握词汇量</h5>
+                  <p id="stat-words-value">0 个</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 28-day Roadmap -->
+            <div class="roadmap-card">
+              <h4>学习大纲 (28天)</h4>
+              <div class="roadmap-list" id="dashboard-roadmap-list">
+                <!-- Roadmap Items will render here dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PAGE: STUDY ================= -->
+      <section class="page" id="page-study">
+        <div class="day-selector-bar">
+          <div class="day-info-text">
+            <span id="study-day-title">DAY 1</span>
+            <span style="font-size: 13px; color: var(--text-muted); margin-left: 8px;">(对应文章<span id="study-para-title">第 1 段</span>)</span>
+          </div>
+          
+          <div class="day-nav-buttons">
+            <button class="btn-nav" id="btn-prev-day" title="前一天"><i class="ri-arrow-left-s-line"></i></button>
+            <button class="btn-nav" id="btn-next-day" title="后一天"><i class="ri-arrow-right-s-line"></i></button>
+          </div>
+        </div>
+        
+        <div class="study-container" style="margin-top: 24px;">
+          <div class="study-main">
+            <!-- Original Sentence -->
+            <div class="original-sentence-card" id="study-original-card" style="display: none;">
+              <div class="card-label">
+                <span>托福原句</span>
+                <button class="audio-btn" id="study-original-speak-btn" title="朗读句子"><i class="ri-volume-up-fill"></i></button>
+              </div>
+              <div class="original-sentence-text" id="study-original-text">Loading...</div>
+              
+              <button class="original-translation-btn" id="study-trans-btn">点击显示原句中文翻译</button>
+              <div class="original-translation-text" id="study-trans-text">Loading...</div>
+            </div>
+            
+            <!-- Sentence Evolution Section -->
+            <div class="simplified-section">
+              <h4 class="simplified-section-title">句子“进化”渐进学习</h4>
+              
+              <!-- Timeline indicator dots -->
+              <div class="evolution-timeline" id="study-evolution-timeline">
+                <!-- Timeline dots will render here dynamically -->
+              </div>
+              
+              <!-- Active Evolution Card -->
+              <div class="evolution-card" id="study-evolution-card">
+                <div class="evolution-stage-header">
+                  <span class="evolution-stage-badge" id="evolution-stage-badge">第一步：极简主干</span>
+                  <button class="audio-btn" id="evolution-speak-btn" title="朗读当前句子"><i class="ri-volume-up-fill"></i></button>
+                </div>
+                <div class="evolution-text" id="evolution-text">Loading...</div>
+                <div class="evolution-translation" id="evolution-translation">Loading...</div>
+                <div class="evolution-change" id="evolution-change">
+                  <i class="ri-lightbulb-fill"></i>
+                  <div id="evolution-change-text">Loading...</div>
+                </div>
+                
+                <!-- Evolution Step Prev/Next buttons -->
+                <div class="evolution-controls">
+                  <button class="btn-evolution-nav" id="btn-prev-stage"><i class="ri-arrow-left-line"></i> 上一步</button>
+                  <button class="btn-evolution-nav" id="btn-next-stage">下一步 <i class="ri-arrow-right-line"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="study-sidebar">
+            <!-- Learning Action -->
+            <div class="action-card">
+              <button class="complete-btn uncompleted" id="study-complete-btn">
+                <i class="ri-checkbox-circle-line"></i> 打卡打卡，完成今日学习
+              </button>
+            </div>
+            
+            <!-- Today Vocabulary -->
+            <div class="vocab-card">
+              <h4>今日重点词汇</h4>
+              <div class="vocab-list" id="study-vocab-list">
+                <!-- Vocab Items will render here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PAGE: FULL ARTICLE ================= -->
+      <section class="page" id="page-article">
+        <div class="page-header">
+          <h2>全文双语互动对照</h2>
+          <p>点击英文或中文句子可高亮双语对应句，并在下方查看详细句子的拆解分句信息。</p>
+        </div>
+        
+        <div class="article-layout">
+          <!-- English Panel -->
+          <div class="article-pane">
+            <div class="article-pane-header">
+              <span>English Passage</span>
+              <span style="font-size:12px; color:var(--text-muted);">THE RISE OF TEOTIHUACÁN</span>
+            </div>
+            <div class="article-pane-content english" id="article-eng-pane">
+              <!-- Paragraphs will render here -->
+            </div>
+          </div>
+          
+          <!-- Chinese Panel -->
+          <div class="article-pane">
+            <div class="article-pane-header">
+              <span>中文对照翻译</span>
+              <span style="font-size:12px; color:var(--text-muted);">特奥蒂瓦坎的兴起</span>
+            </div>
+            <div class="article-pane-content chinese" id="article-chi-pane">
+              <!-- Paragraphs will render here -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Interactive Detail Panel -->
+        <div class="sentence-interactive-panel" id="article-sentence-panel">
+          <h5 id="article-panel-title">长难句拆解</h5>
+          <div class="sentence-interactive-splits" id="article-panel-splits">
+            <!-- Bullet Splits will render here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PAGE: VOCABULARY ================= -->
+      <section class="page" id="page-vocab">
+        <div class="page-header">
+          <h2>词汇总表 & 词典</h2>
+          <p>这里收录了 28 天学习中涵盖的所有托福核心词汇，双击单词可以听发音。</p>
+        </div>
+        
+        <div class="vocab-toolbar">
+          <div class="search-box">
+            <i class="ri-search-line"></i>
+            <input type="text" class="search-input" id="vocab-search" placeholder="输入单词或中文释义搜索...">
+          </div>
+          
+          <div class="filter-btn-group">
+            <button class="filter-btn active" data-filter="all">全部单词</button>
+            <button class="filter-btn" data-filter="learned">已学单词</button>
+            <button class="filter-btn" data-filter="unlearned">未学单词</button>
+          </div>
+        </div>
+        
+        <div class="vocab-grid" id="vocab-grid-container">
+          <!-- Vocab Grid Cards will render here -->
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Floating Tooltip for Word Click -->
+  <div class="word-tooltip" id="word-tooltip">
+    <div class="word-tooltip-header">
+      <span class="word-tooltip-text" id="tooltip-word">word</span>
+      <button class="audio-btn" id="tooltip-speak-btn" title="听发音"><i class="ri-volume-up-fill"></i></button>
+    </div>
+    <div class="word-tooltip-meaning" id="tooltip-meaning">加载中...</div>
+  </div>
+
+  <!-- Load TOEFL passage dataset -->
+  <script src="data.js"></script>
+  <!-- Load App controllers and renderer -->
+  <script src="app.js"></script>
+</body>
+</html>
