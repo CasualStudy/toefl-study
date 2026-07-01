@@ -50,8 +50,14 @@
           </li>
           <li>
             <a href="#" class="nav-item" data-page="vocab">
-              <i class="ri-chat-voice-line"></i>
-              <span>词汇词典</span>
+              <i class="ri-book-open-line"></i>
+              <span>词汇表 (All)</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-page="review">
+              <i class="ri-brain-line"></i>
+              <span>单词库 (Review)</span>
             </a>
           </li>
         </ul>
@@ -288,6 +294,61 @@
         </div>
       </section>
 
+      <!-- ================= PAGE: VOCAB REVIEW (SPACED REPETITION) ================= -->
+      <section class="page" id="page-review">
+        <div class="page-header">
+          <h2>单词库与记忆强化</h2>
+          <p>基于超级记忆算法 (SM-2)，带你科学复习和巩固托福难词。</p>
+        </div>
+        
+        <div class="review-layout">
+          <div class="review-stats">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="ri-brain-fill"></i></div>
+              <div class="stat-info">
+                <h5>今日待复习</h5>
+                <p id="review-today-count">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="ri-database-2-fill"></i></div>
+              <div class="stat-info">
+                <h5>单词库总词数</h5>
+                <p id="review-total-count">0</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="review-card-container" id="review-card-container">
+            <!-- Review active state -->
+            <div class="review-card" id="review-card-active" style="display: none;">
+              <div class="review-word" id="review-word-display">Loading...</div>
+              
+              <button class="review-reveal-btn" id="review-reveal-btn">显示释义</button>
+              
+              <div class="review-meaning-section" id="review-meaning-section" style="display: none;">
+                <div class="review-meaning" id="review-meaning-display">Loading...</div>
+                
+                <h5 style="margin-top: 32px; margin-bottom: 16px; color: var(--text-secondary); text-align: center;">请诚实评估你的记忆程度：</h5>
+                <div class="review-action-btns">
+                  <button class="btn-review btn-forgot" id="btn-review-forgot">忘记了<br><span>重头开始</span></button>
+                  <button class="btn-review btn-hard" id="btn-review-hard">困难<br><span>稍后复习</span></button>
+                  <button class="btn-review btn-good" id="btn-review-good">认识<br><span>正常延期</span></button>
+                  <button class="btn-review btn-easy" id="btn-review-easy">太简单<br><span>大幅延期</span></button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Review empty/done state -->
+            <div class="review-done-state" id="review-done-state">
+              <i class="ri-cup-line" style="font-size: 64px; color: var(--accent-gold); margin-bottom: 20px;"></i>
+              <h3 style="font-family: var(--font-display); color: var(--text-primary); font-size: 24px; margin-bottom: 12px;">太棒了！</h3>
+              <p style="color: var(--text-secondary); font-size: 16px;">今日需要复习的单词已经全部完成啦！</p>
+              <button class="btn-review-start" id="btn-review-force" style="margin-top: 30px; padding: 12px 24px; border-radius: 12px; background: transparent; border: 1px solid var(--accent-gold); color: var(--accent-gold); cursor: pointer;">强行抽取随机复习 (5词)</button>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
   </div>
@@ -301,7 +362,30 @@
     <div class="word-tooltip-meaning" id="tooltip-meaning">加载中...</div>
   </div>
 
+  <!-- Quiz Modal Overlay -->
+  <div class="modal-overlay" id="quiz-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="quiz-title">今日生词捕捉</h3>
+        <button class="modal-close" id="quiz-close-btn"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="quiz-word-display" style="font-family: var(--font-display); font-size: 32px; color: var(--accent-gold); text-align: center; margin: 30px 0;">Loading...</div>
+        <div id="quiz-meaning-display" style="text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 16px; min-height: 24px;"></div>
+        
+        <div class="quiz-controls" id="quiz-controls">
+          <button class="btn-quiz btn-unknown" id="btn-quiz-unknown"><i class="ri-close-circle-line"></i> 不认识</button>
+          <button class="btn-quiz btn-known" id="btn-quiz-known"><i class="ri-checkbox-circle-line"></i> 认识</button>
+        </div>
+      </div>
+      <div class="modal-footer" style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 20px;">
+        进度: <span id="quiz-progress">0/0</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Load TOEFL passage dataset -->
+  <script src="stopwords.js"></script>
   <script src="data.js"></script>
   <script src="grammarData.js"></script>
   <!-- Load App controllers and renderer -->

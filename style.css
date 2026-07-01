@@ -1197,6 +1197,105 @@ button, input {
   -webkit-box-orient: vertical;
 }
 
+/* --- MODAL OVERLAY & QUIZ --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(11, 12, 16, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn var(--transition-fast);
+}
+
+.modal-content {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--accent-gold);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(204, 164, 59, 0.2);
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 16px;
+}
+
+.modal-header h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 24px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.modal-close:hover {
+  color: var(--accent-gold);
+}
+
+.quiz-controls {
+  display: flex;
+  gap: 16px;
+}
+
+.btn-quiz {
+  flex: 1;
+  padding: 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition-fast);
+}
+
+.btn-unknown {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-unknown:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.btn-known {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--success-green);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.btn-known:hover {
+  background-color: var(--success-green);
+  color: var(--bg-color);
+}
+
 /* =========================================
    RESPONSIVE - TABLET
    ========================================= */
@@ -1419,14 +1518,122 @@ button, input {
     overflow-y: auto;
   }
 
-  /* ---- Stat cards - horizontal ---- */
-  .stat-card {
-    padding: 18px 16px;
-  }
-
   .stat-info p {
     font-size: 22px;
   }
+
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* --- VOCAB REVIEW PAGE --- */
+.review-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.review-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.review-card-container {
+  background-color: var(--panel-bg);
+  border-radius: 24px;
+  padding: 40px 30px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.review-word {
+  font-family: var(--font-display);
+  font-size: 48px;
+  color: var(--accent-gold);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.review-reveal-btn {
+  background-color: rgba(204, 164, 59, 0.1);
+  color: var(--accent-gold);
+  border: 1px solid rgba(204, 164, 59, 0.3);
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  margin: 0 auto;
+  display: block;
+}
+
+.review-reveal-btn:hover {
+  background-color: var(--accent-gold);
+  color: var(--bg-color);
+}
+
+.review-meaning {
+  font-size: 20px;
+  color: var(--text-primary);
+  text-align: center;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.review-action-btns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-review {
+  padding: 12px 4px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: var(--transition-fast);
+}
+
+.btn-review span {
+  font-size: 10px;
+  font-weight: normal;
+  opacity: 0.8;
+}
+
+.btn-forgot { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.btn-forgot:hover { background-color: #ef4444; color: white; }
+
+.btn-hard { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.btn-hard:hover { background-color: #f59e0b; color: white; }
+
+.btn-good { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
+.btn-good:hover { background-color: #10b981; color: white; }
+
+.btn-easy { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.btn-easy:hover { background-color: #3b82f6; color: white; }
+
+.review-done-state {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* =========================================

@@ -2,6 +2,7 @@
 let state = {
   currentDay: 1,
   completedDays: [], // Array of day numbers completed
+  wordBank: {}, // Dictionary of spaced repetition words: { "word": { interval, ease, nextReviewDate } }
   activePage: 'dashboard',
   selectedSentenceId: null, // For interactive article view
   vocabSearchQuery: '',
@@ -31,6 +32,7 @@ function initLocalStorage() {
     try {
       const parsed = JSON.parse(savedProgress);
       state.completedDays = parsed.completedDays || [];
+      state.wordBank = parsed.wordBank || {};
       // Set currentDay to the first uncompleted day
       let firstUncompleted = 1;
       for (let d = 1; d <= 28; d++) {
@@ -51,7 +53,8 @@ function initLocalStorage() {
 // Save Progress to Local Storage
 function saveProgress() {
   localStorage.setItem('toefl_study_progress', JSON.stringify({
-    completedDays: state.completedDays
+    completedDays: state.completedDays,
+    wordBank: state.wordBank
   }));
 }
 
@@ -184,6 +187,8 @@ function showPage(pageId) {
     renderStudyPage();
   } else if (pageId === 'vocab') {
     renderVocabPage();
+  } else if (pageId === 'review') {
+    renderReviewPage();
   }
 }
 
@@ -415,7 +420,7 @@ function renderStudyPage(resetStage = true) {
     completeBtn.className = 'complete-btn uncompleted';
     completeBtn.innerHTML = `<i class="ri-checkbox-circle-line"></i> 打卡打卡，完成今日学习`;
     completeBtn.onclick = () => {
-      markDayCompleted(data.day);
+      startDailyQuiz(data.day);
     };
   }
   
@@ -1108,6 +1113,123 @@ function getEvolutionTextHTML(prevText, currentText) {
   return html;
 }
 
+// --- SPACED REPETITION LOGIC ---
+function updateWordProgress(word, status) {
+  let record = state.wordBank[word];
+  const now = new Date();
+  
+  if (!record) {
+    record = { interval: 0, ease: 2.5, nextReviewDate: now.toISOString().split('T')[0] };
+  }
+  
+  if (status === 'unknown' || status === 'forgot' || status === 'hard') {
+    // Punish
+    record.interval = 1;
+    record.ease = Math.max(1.3, record.ease - 0.2);
+  } else if (status === 'known' || status === 'good' || status === 'easy') {
+    // Reward
+    if (record.interval === 0) {
+      record.interval = 1;
+    } else if (record.interval === 1) {
+      record.interval = 3;
+    } else {
+      record.interval = Math.round(record.interval * record.ease);
+    }
+    // If 'easy' or from initial capture 'known', give a bigger boost
+    if (status === 'easy' || status === 'known') {
+      record.ease += 0.15;
+      if (status === 'known' && record.interval === 1) record.interval = 7; // Fast track known words
+    }
+  }
+  
+  // Calculate next date
+  const nextDate = new Date();
+  nextDate.setDate(nextDate.getDate() + record.interval);
+  record.nextReviewDate = nextDate.toISOString().split('T')[0];
+  
+  state.wordBank[word] = record;
+  saveProgress();
+}
+
+// --- POST-STUDY QUIZ ---
+let currentQuizWords = [];
+let currentQuizDay = 1;
+
+function startDailyQuiz(dayNum) {
+  const data = toeflData[dayNum - 1];
+  if (!data) return markDayCompleted(dayNum);
+  
+  currentQuizDay = dayNum;
+  
+  // Clean and extract words from original sentence
+  const rawWords = data.original.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=_`~()?"']/g, " ").split(/\s+/);
+  
+  // Filter words: not empty, > 2 chars, not a number, not in stop words, not already in wordBank
+  currentQuizWords = rawWords.filter(w => 
+    w.length > 2 && 
+    isNaN(w) && 
+    typeof basicStopWords !== 'undefined' && !basicStopWords.has(w) &&
+    !state.wordBank[w]
+  );
+  
+  // De-duplicate
+  currentQuizWords = [...new Set(currentQuizWords)];
+  
+  if (currentQuizWords.length === 0) {
+    return markDayCompleted(dayNum);
+  }
+  
+  showNextQuizWord();
+}
+
+function showNextQuizWord() {
+  if (currentQuizWords.length === 0) {
+    document.getElementById('quiz-modal').style.display = 'none';
+    return markDayCompleted(currentQuizDay);
+  }
+  
+  const word = currentQuizWords[0];
+  const modal = document.getElementById('quiz-modal');
+  modal.style.display = 'flex';
+  
+  const wordDisplay = document.getElementById('quiz-word-display');
+  const meaningDisplay = document.getElementById('quiz-meaning-display');
+  
+  wordDisplay.innerText = word;
+  
+  // Look up meaning
+  let meaning = toeflDict[word];
+  if (!meaning && word.endsWith('s')) meaning = toeflDict[word.slice(0, -1)];
+  if (!meaning && word.endsWith('ed')) meaning = toeflDict[word.slice(0, -2)];
+  if (!meaning && word.endsWith('ing')) meaning = toeflDict[word.slice(0, -3)];
+  if (!meaning) meaning = "点击“不认识”加入生词本后可查看详细解释";
+  
+  // Hide meaning initially in quiz
+  meaningDisplay.innerText = meaning;
+  meaningDisplay.style.opacity = '0'; 
+  
+  document.getElementById('quiz-progress').innerText = `剩余 ${currentQuizWords.length} 词`;
+  
+  document.getElementById('btn-quiz-unknown').onclick = () => {
+    meaningDisplay.style.opacity = '1';
+    updateWordProgress(word, 'unknown');
+    setTimeout(() => {
+      currentQuizWords.shift();
+      showNextQuizWord();
+    }, 1200); // Wait 1.2s to let them read the meaning
+  };
+  
+  document.getElementById('btn-quiz-known').onclick = () => {
+    updateWordProgress(word, 'known');
+    currentQuizWords.shift();
+    showNextQuizWord();
+  };
+  
+  document.getElementById('quiz-close-btn').onclick = () => {
+    modal.style.display = 'none';
+  };
+}
+
 // Complete day study
 function markDayCompleted(dayNum) {
   if (!state.completedDays.includes(dayNum)) {
@@ -1372,5 +1494,106 @@ function renderVocabPage() {
     });
     
     container.appendChild(card);
+  });
+}
+
+// --- VOCAB REVIEW PAGE (SPACED REPETITION) ---
+let currentReviewQueue = [];
+let currentReviewIndex = 0;
+
+function renderReviewPage() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const allWords = Object.keys(state.wordBank);
+  
+  // 1. Gather due words (nextReviewDate <= today)
+  let dueWords = allWords.filter(w => state.wordBank[w].nextReviewDate <= todayStr);
+  
+  // 2. 5% Random injection of future/known words
+  let futureWords = allWords.filter(w => state.wordBank[w].nextReviewDate > todayStr);
+  futureWords.forEach(w => {
+    if (Math.random() < 0.05) {
+      dueWords.push(w);
+    }
+  });
+  
+  // Shuffle queue
+  currentReviewQueue = dueWords.sort(() => Math.random() - 0.5);
+  currentReviewIndex = 0;
+  
+  // Update stats
+  document.getElementById('review-today-count').innerText = currentReviewQueue.length;
+  document.getElementById('review-total-count').innerText = allWords.length;
+  
+  showNextReviewCard();
+}
+
+function showNextReviewCard() {
+  const activeCard = document.getElementById('review-card-active');
+  const doneState = document.getElementById('review-done-state');
+  
+  if (currentReviewIndex >= currentReviewQueue.length) {
+    // Finished today's queue
+    activeCard.style.display = 'none';
+    doneState.style.display = 'flex';
+    document.getElementById('review-today-count').innerText = '0';
+    
+    // Force Random Review Logic
+    document.getElementById('btn-review-force').onclick = () => {
+      const allWords = Object.keys(state.wordBank);
+      if (allWords.length === 0) {
+        showToast("单词库还是空的，先去学习吧！");
+        return;
+      }
+      // Pick 5 random words
+      const shuffled = allWords.sort(() => 0.5 - Math.random());
+      currentReviewQueue = shuffled.slice(0, 5);
+      currentReviewIndex = 0;
+      showNextReviewCard();
+    };
+    return;
+  }
+  
+  // Setup next card
+  activeCard.style.display = 'block';
+  doneState.style.display = 'none';
+  
+  const word = currentReviewQueue[currentReviewIndex];
+  document.getElementById('review-word-display').innerText = word;
+  document.getElementById('review-today-count').innerText = (currentReviewQueue.length - currentReviewIndex);
+  
+  // Reset UI states
+  const meaningSection = document.getElementById('review-meaning-section');
+  const revealBtn = document.getElementById('review-reveal-btn');
+  
+  meaningSection.style.display = 'none';
+  revealBtn.style.display = 'block';
+  
+  // Look up meaning
+  let meaning = toeflDict[word];
+  if (!meaning && word.endsWith('s')) meaning = toeflDict[word.slice(0, -1)];
+  if (!meaning && word.endsWith('ed')) meaning = toeflDict[word.slice(0, -2)];
+  if (!meaning && word.endsWith('ing')) meaning = toeflDict[word.slice(0, -3)];
+  if (!meaning) meaning = "网络例句暂无中文释义。";
+  document.getElementById('review-meaning-display').innerText = meaning;
+  
+  revealBtn.onclick = () => {
+    revealBtn.style.display = 'none';
+    meaningSection.style.display = 'block';
+  };
+  
+  // Setup answer buttons
+  const answerButtons = [
+    { id: 'btn-review-forgot', status: 'forgot' },
+    { id: 'btn-review-hard', status: 'hard' },
+    { id: 'btn-review-good', status: 'good' },
+    { id: 'btn-review-easy', status: 'easy' }
+  ];
+  
+  answerButtons.forEach(btn => {
+    document.getElementById(btn.id).onclick = () => {
+      updateWordProgress(word, btn.status);
+      currentReviewIndex++;
+      showNextReviewCard();
+    };
   });
 }
