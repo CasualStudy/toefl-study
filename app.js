@@ -418,6 +418,28 @@ function renderStudyPage(resetStage = true) {
       markDayCompleted(data.day);
     };
   }
+  
+  // Render Grammar Points
+  const grammarList = document.getElementById('study-grammar-list');
+  grammarList.innerHTML = '';
+  
+  // Check if grammar data exists for this day
+  if (typeof toeflGrammarData !== 'undefined' && toeflGrammarData[state.currentDay]) {
+    const grammars = toeflGrammarData[state.currentDay];
+    grammars.forEach(g => {
+      const item = document.createElement('div');
+      item.className = 'vocab-item';
+      item.innerHTML = `
+        <div class="vocab-word" style="color: var(--accent-gold); font-size: 15px;">
+          <i class="ri-bookmark-3-line" style="font-size: 14px; margin-right: 4px;"></i>${g.point}
+        </div>
+        <div class="vocab-meaning" style="font-size: 13px; line-height: 1.5;">${g.explanation}</div>
+      `;
+      grammarList.appendChild(item);
+    });
+  } else {
+    grammarList.innerHTML = '<div class="vocab-meaning">暂无语法解析</div>';
+  }
 }
 
 // Render active evolution step card contents
@@ -485,13 +507,17 @@ function renderActiveEvolutionStep() {
 
   // Show/Hide the official TOEFL original sentence card depending on whether the user reached the final stage
   const originalCard = document.getElementById('study-original-card');
+  const grammarCard = document.getElementById('study-grammar-card');
+  
   if (originalCard) {
     if (state.currentEvolutionStage === data.evolution.length) {
       originalCard.style.display = 'block';
+      if (grammarCard) grammarCard.style.display = 'flex'; // It's a vocab-card flex container
       // Automatically scroll the original card into view if it was hidden
       originalCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else {
       originalCard.style.display = 'none';
+      if (grammarCard) grammarCard.style.display = 'none';
     }
   }
 }
