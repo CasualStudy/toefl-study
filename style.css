@@ -1553,7 +1553,7 @@ button, input {
 }
 
 .review-word {
-  font-family: var(--font-display);
+  font-family: var(--font-primary);
   font-size: 48px;
   color: var(--accent-gold);
   text-align: center;
