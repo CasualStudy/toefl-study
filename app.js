@@ -187,21 +187,36 @@ function showPage(pageId) {
   }
 }
 
-// Speak text using SpeechSynthesis
+// Speak text using SpeechSynthesis (with mobile iOS Safari fixes)
 function speakText(text) {
   if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); // Cancel currently playing speech
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
+    // Fix 1: iOS Safari bug where cancel() breaks immediate subsequent speak()
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
     
-    // Find a suitable English voice
-    const voices = window.speechSynthesis.getVoices();
-    const enVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Google')) ||
-                    voices.find(v => v.lang.includes('en-US')) ||
-                    voices.find(v => v.lang.includes('en'));
-    if (enVoice) utterance.voice = enVoice;
-    
-    window.speechSynthesis.speak(utterance);
+    // Fix 2: Add a tiny delay to ensure cancel() finishes
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Fix 3: iOS Safari garbage collection bug
+      // If utterance is garbage collected before speaking finishes, it stops.
+      window.__currentUtterance = utterance; 
+      
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9; // Slightly slower for better learning
+      
+      // Find a suitable English voice
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        const enVoice = voices.find(v => v.lang.includes('en-US') && (v.name.includes('Google') || v.name.includes('Siri') || v.name.includes('Samantha'))) ||
+                        voices.find(v => v.lang.includes('en-US')) ||
+                        voices.find(v => v.lang.includes('en'));
+        if (enVoice) utterance.voice = enVoice;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }, 50);
   } else {
     alert("您的浏览器不支持语音合成播放。");
   }
