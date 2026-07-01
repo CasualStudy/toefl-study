@@ -1,8 +1,27 @@
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDrNsFp-ca_CN1zNYanxDCoU_tFkxwjH5U",
+  authDomain: "toefl-7f173.firebaseapp.com",
+  projectId: "toefl-7f173",
+  storageBucket: "toefl-7f173.firebasestorage.app",
+  messagingSenderId: "385174921337",
+  appId: "1:385174921337:web:1fb194f534065a0c57f4a8",
+  measurementId: "G-XE5ELWHY9W"
+};
+
+// Initialize Firebase
+if (typeof firebase !== 'undefined') {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
+
 // Application State
 let state = {
   currentDay: 1,
   completedDays: [], // Array of day numbers completed
   wordBank: {}, // Dictionary of spaced repetition words: { "word": { interval, ease, nextReviewDate } }
+  syncId: null, // User's private sync code
+  lastUpdated: 0, // Timestamp for sync comparison
   activePage: 'dashboard',
   selectedSentenceId: null, // For interactive article view
   vocabSearchQuery: '',
@@ -15,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initLocalStorage();
   setupEventListeners();
   setupWordClickHandlers();
+  setupSyncHandlers();
   updateProgressUI();
   renderDashboard();
   renderRoadmap();
@@ -33,6 +53,9 @@ function initLocalStorage() {
       const parsed = JSON.parse(savedProgress);
       state.completedDays = parsed.completedDays || [];
       state.wordBank = parsed.wordBank || {};
+      state.syncId = parsed.syncId || null;
+      state.lastUpdated = parsed.lastUpdated || Date.now();
+      
       // Set currentDay to the first uncompleted day
       let firstUncompleted = 1;
       for (let d = 1; d <= 28; d++) {
@@ -45,18 +68,152 @@ function initLocalStorage() {
     } catch (e) {
       console.error("Error parsing progress from localStorage", e);
     }
-  } else {
-    saveProgress();
+  }
+  
+  updateSyncUI();
+  
+  // If we have a syncId on load, optionally pull latest from cloud
+  if (state.syncId && db) {
+    pullFromCloud(state.syncId, true);
   }
 }
 
-// Save Progress to Local Storage
+// Save Progress to Local Storage & Cloud
 function saveProgress() {
+  state.lastUpdated = Date.now();
+  
   localStorage.setItem('toefl_study_progress', JSON.stringify({
     completedDays: state.completedDays,
-    wordBank: state.wordBank
+    wordBank: state.wordBank,
+    syncId: state.syncId,
+    lastUpdated: state.lastUpdated
   }));
+  
+  if (state.syncId && db) {
+    pushToCloud();
+  }
 }
+
+// --- CLOUD SYNC LOGIC ---
+function setupSyncHandlers() {
+  const syncStatusBtn = document.getElementById('nav-sync-status');
+  const syncModal = document.getElementById('sync-modal');
+  const closeBtn = document.getElementById('sync-close-btn');
+  const submitBtn = document.getElementById('btn-sync-submit');
+  
+  if (syncStatusBtn) {
+    syncStatusBtn.addEventListener('click', () => {
+      syncModal.style.display = 'flex';
+      if (state.syncId) {
+        document.getElementById('sync-passcode-input').value = state.syncId;
+      }
+    });
+  }
+  
+  if (closeBtn) closeBtn.onclick = () => syncModal.style.display = 'none';
+  
+  if (submitBtn) {
+    submitBtn.onclick = async () => {
+      const input = document.getElementById('sync-passcode-input').value.trim();
+      const errorMsg = document.getElementById('sync-error-msg');
+      
+      if (input.length < 4) {
+        errorMsg.innerText = "同步码太短，至少需要4个字符";
+        errorMsg.style.display = 'block';
+        return;
+      }
+      
+      errorMsg.style.display = 'none';
+      submitBtn.innerText = "同步中...";
+      
+      await pullFromCloud(input, false);
+      
+      submitBtn.innerText = "开始同步";
+      syncModal.style.display = 'none';
+    };
+  }
+}
+
+function updateSyncUI() {
+  const statusEl = document.getElementById('nav-sync-status');
+  if (statusEl) {
+    if (state.syncId) {
+      statusEl.innerHTML = `<i class="ri-cloud-line" style="color:var(--success-green);"></i> 已同步: ${state.syncId}`;
+    } else {
+      statusEl.innerHTML = `<i class="ri-cloud-off-line"></i> 未同步 (点击设置)`;
+    }
+  }
+}
+
+async function pullFromCloud(syncId, isSilent = false) {
+  if (!db) return;
+  try {
+    const docRef = db.collection("users").doc(syncId);
+    const docSnap = await docRef.get();
+    
+    if (docSnap.exists) {
+      const cloudData = docSnap.data();
+      // Compare timestamps
+      if (cloudData.lastUpdated && cloudData.lastUpdated > state.lastUpdated) {
+        state.completedDays = cloudData.completedDays || [];
+        state.wordBank = cloudData.wordBank || {};
+        state.lastUpdated = cloudData.lastUpdated;
+        state.syncId = syncId;
+        
+        // Save to local
+        localStorage.setItem('toefl_study_progress', JSON.stringify({
+          completedDays: state.completedDays,
+          wordBank: state.wordBank,
+          syncId: state.syncId,
+          lastUpdated: state.lastUpdated
+        }));
+        
+        if (!isSilent) showToast("已从云端成功下载最新进度！");
+        updateSyncUI();
+        updateProgressUI();
+        if (state.activePage === 'study') renderStudyPage();
+        if (state.activePage === 'dashboard') renderDashboard();
+      } else if (!isSilent && cloudData.lastUpdated <= state.lastUpdated) {
+        // Local is newer or same, push local to cloud
+        state.syncId = syncId;
+        await pushToCloud();
+        showToast("已将本地最新进度上传至云端！");
+        updateSyncUI();
+      }
+    } else {
+      // Cloud document doesn't exist, this is a new user
+      state.syncId = syncId;
+      await pushToCloud();
+      if (!isSilent) showToast("已在云端为你创建专属空间并上传初始进度！");
+      updateSyncUI();
+    }
+  } catch (e) {
+    console.error("Error pulling from cloud", e);
+    if (!isSilent) {
+      const errorMsg = document.getElementById('sync-error-msg');
+      if (errorMsg) {
+        errorMsg.innerText = "网络或数据库错误，请重试";
+        errorMsg.style.display = 'block';
+      } else {
+        alert("同步失败，请检查网络");
+      }
+    }
+  }
+}
+
+async function pushToCloud() {
+  if (!db || !state.syncId) return;
+  try {
+    await db.collection("users").doc(state.syncId).set({
+      completedDays: state.completedDays,
+      wordBank: state.wordBank,
+      lastUpdated: state.lastUpdated
+    });
+  } catch (e) {
+    console.error("Error pushing to cloud", e);
+  }
+}
+
 
 // Update Global Progress Bars and Side Info
 function updateProgressUI() {
